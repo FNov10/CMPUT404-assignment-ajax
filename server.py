@@ -22,7 +22,7 @@
 
 
 import flask
-from flask import Flask, request
+from flask import Flask, request,redirect
 import json
 app = Flask(__name__)
 app.debug = True
@@ -62,39 +62,60 @@ myWorld = World()
 # I give this to you, this is how you get the raw body/data portion of a post in flask
 # this should come with flask but whatever, it's not my project.
 def flask_post_json():
+    
+   # console.log('salamm')
     '''Ah the joys of frameworks! They do so much work for you
        that they get in the way of sane operation!'''
     if (request.json != None):
+       # console.log(request.json)
         return request.json
     elif (request.data != None and request.data.decode("utf8") != u''):
         return json.loads(request.data.decode("utf8"))
     else:
+        print(334643)
         return json.loads(request.form.keys()[0])
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    return response
 
 @app.route("/")
 def hello():
     '''Return something coherent here.. perhaps redirect to /static/index.html '''
-    return None
+    return redirect("127.0.0.1:5000/static/index.html", code=302)
 
 @app.route("/entity/<entity>", methods=['POST','PUT'])
 def update(entity):
     '''update the entities via this interface'''
-    return None
+    data = flask_post_json()
+    myWorld.set(entity,data)
+    return request.json
 
 @app.route("/world", methods=['POST','GET'])    
 def world():
+    return myWorld.world()
     '''you should probably return the world here'''
     return None
 
 @app.route("/entity/<entity>")    
 def get_entity(entity):
     '''This is the GET version of the entity interface, return a representation of the entity'''
+    return myWorld.get(entity)
     return None
 
 @app.route("/clear", methods=['POST','GET'])
 def clear():
     '''Clear the world out!'''
+    myWorld.clear()
+    return myWorld.world()
     return None
 
 if __name__ == "__main__":
+    #flask_post_json()
     app.run()
+    print(request.json)
+    print(7453498563478)
